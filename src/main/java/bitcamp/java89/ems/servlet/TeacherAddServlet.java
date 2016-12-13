@@ -4,41 +4,60 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import bitcamp.java89.ems.dao.impl.TeacherMysqlDao;
 import bitcamp.java89.ems.vo.Teacher;
 @WebServlet("/teacher/add")
-public class TeacherAddServlet extends AbstractServlet {
+public class TeacherAddServlet extends HttpServlet {
 
-//  teacher/add?name=1&career=12&langauge=13&book=true&email=14&tel=15
+  private static final long serialVersionUID = 1L;
+
   @Override
-  public void service(ServletRequest request, ServletResponse response) throws ServletException, IOException {
+  protected void doPost(HttpServletRequest request, HttpServletResponse response)
+      throws ServletException, IOException {
+    
+    request.setCharacterEncoding("UTF-8");
+    response.setHeader("Refresh", "1;url=list");
+    
+    response.setContentType("text/html;charset=UTF-8");
+    PrintWriter out = response.getWriter();
+    
+    Teacher teacher = new Teacher();
+    teacher.setName(request.getParameter("name"));
+    teacher.setCareer(request.getParameter("career"));
+    teacher.setLangauge(request.getParameter("langauge"));
+    teacher.setBook(Boolean.parseBoolean(request.getParameter("book")));
+    teacher.setEmail(request.getParameter("email"));
+    teacher.setTel(request.getParameter("tel"));
+    
+    out.println("<!DOCTYPE html>");
+    out.println("<html>");
+    out.println("<head>");
+    out.println("<meta charset='UTF-8'>");
+    out.println("<title>강사 관리-등록</title>");
+    out.println("</head>");
+    out.println("<body>");
+    out.println("<h1>등록 결과</h1>");
+    
     try {
       TeacherMysqlDao teacherDao = TeacherMysqlDao.getInstance();
-      response.setContentType("text/plain;charset=UTF-8");
-      PrintWriter out = response.getWriter();
       
-      if (teacherDao.existName(request.getParameter("name"))) {
-        out.println("같은 이름이 존재합니다. 등록을 취소합니다.");
-        return;
+      if (teacherDao.existName(teacher.getName())) {
+        throw new Exception ("같은 이름이 존재합니다. 등록을 취소합니다.");
       }
-      Teacher teacher = new Teacher();
-      teacher.setName(request.getParameter("name"));
-      teacher.setCareer(request.getParameter("career"));
-      teacher.setLangauge(request.getParameter("langauge"));
-      teacher.setBook(Boolean.parseBoolean(request.getParameter("book")));
-      teacher.setEmail(request.getParameter("email"));
-      teacher.setTel(request.getParameter("tel"));
       
       teacherDao.insert(teacher);
-      out.println("등록하였습니다.");
+      out.println("<p>등록하였습니다.</p>");
       
     } catch (Exception e) {
-      throw new ServletException(e);
+      out.printf("<p>%s</p>\n", e.getMessage());
     }
+    out.println("</body>");
+    out.println("</html>");
   }
 
   
